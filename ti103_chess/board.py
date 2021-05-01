@@ -128,12 +128,29 @@ class Echiquier:
                 elif event.type == pygame.MOUSEBUTTONDOWN:      # quand tu clique avec la souris
                     if event.button == 1:
                         x, y = event.pos
-                        print(x, y)
+                        selected = -1
+                        for piece in partie.pieces:
+                            if piece.x == (x // 85) * 85 and piece.y == (y // 85) * 85 and piece.capture is False:
+                                selected = piece
 
                 elif event.type == pygame.MOUSEBUTTONUP:        # quand tu lâches la souris
                     if event.button == 1 and selected != -1:
                         x, y = event.pos
-                        print(x, y)
+                        if ((x // 85) * 85, (y // 85) * 85) != (selected.x, selected.y):
+                            old = to_tile(selected.x, selected.y + 85)
+                            new = to_tile(x, y)
+                            if chess.Move.from_uci(f"{old}{new}") in engine.legal_moves:
+                                selected.x = (x // 85) * 85
+                                selected.y = (y // 85) * 85
+                                engine.push_san(f"{piece_initiale[selected.nom]}{old}{new}")
+                                for piece in partie.pieces:
+                                    if piece.x == selected.x and piece.y == selected.y and piece != selected:
+                                        piece.capture = True    # capture la pièce
+                            else:
+                                print(f"{old}{new} not in legal moves")
+                            selected = -1
+                        else:
+                            selected = -1
 
             self.ecran.fill((255, 255, 255))
             self.ecran.blit(self.echiquier, self.echiquier.get_rect())
