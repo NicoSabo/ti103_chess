@@ -13,6 +13,7 @@ Ce module est composé de plusieurs éléments:
 import chess
 import pygame
 import sys
+engine = chess.Board()
 
 
 # On code le dictionnaire qui représente les pièces d'échec. Les initiales servent à décrire la pièce lors de son
@@ -20,7 +21,7 @@ import sys
 # d'un cavalier vers la case b3.
 piece_initiale = {
     'Roi': 'K',
-    'Dame': 'D',
+    'Dame': 'Q',
     'Fou': 'B',
     'Cavalier': 'N',
     'Tour': 'R',
@@ -42,6 +43,7 @@ class Piece:
         self.y = y
         self.ecran = ecran
         self.image = image
+        self.capture = False
 
     def affiche(self):
         """
@@ -60,9 +62,10 @@ class Piece:
                   |                      |
                   +----------------------+
         """
-        r = self.image.get_rect()       # On récupère la taille de l'image à afficher
-        r.topleft = self.x, self.y      # On passe les coordonnées de la pièce comme coin en haut à gauche du rectangle
-        self.ecran.blit(self.image, r)  # On affichage l'image dans le rectangle crée à l'intérieur de la zone écran
+        if self.capture is False:
+            r = self.image.get_rect()       # On récupère la taille de l'image à afficher
+            r.topleft = self.x, self.y      # On passe les coordonnées de la pièce  en haut à gauche du rectangle
+            self.ecran.blit(self.image, r)  # On affichage l'image dans le rectangle crée à l'intérieur de la zone écran
 
     def case(self):
         """
@@ -79,6 +82,7 @@ class Echiquier:
         self.moteur = chess.Board()  # Moteur va valider si les mouvements sont valables.
         self.ecran = ecran
         self.echiquier = echiquier
+        self.selected = -1               # variable pour garder compte de quelle piece est sélectionnée
         self.pieces = [Piece("Roi",      "Noir",  85 * 4, 0,      85, self._image(image, (68, 70, 85, 85)),   ecran),
                        Piece("Dame",     "Noir",  85 * 3, 0,      85, self._image(image, (234, 70, 85, 85)),  ecran),
                        Piece("Tour",     "Noir",  85 * 0, 0,      85, self._image(image, (400, 70, 85, 85)),  ecran),
@@ -121,13 +125,13 @@ class Echiquier:
                 if event.type == pygame.QUIT:
                     sys.exit(0)
 
-                elif event.type == pygame.MOUSEBUTTONDOWN:
+                elif event.type == pygame.MOUSEBUTTONDOWN:      # quand tu clique avec la souris
                     if event.button == 1:
                         x, y = event.pos
                         print(x, y)
 
-                elif event.type == pygame.MOUSEBUTTONUP:
-                    if event.button == 1:
+                elif event.type == pygame.MOUSEBUTTONUP:        # quand tu lâches la souris
+                    if event.button == 1 and selected != -1:
                         x, y = event.pos
                         print(x, y)
 
@@ -172,6 +176,10 @@ def nouvelle_partie():
 
     # Ici, on cree enfin le jeu d'echecs ainsi que les nouvelles pieces a afficher
     return Echiquier(ecran, echiquier, pygame.image.load("ressources/img.png").convert())
+
+
+def to_tile(x, y):
+    return chr(97 + (x // 85)) + str(((680 - y) // 85) + 1)
 
 
 if __name__ == '__main__':
